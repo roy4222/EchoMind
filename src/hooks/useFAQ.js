@@ -3,6 +3,7 @@
  * 處理 FAQ 的搜尋、過濾和展開/收合功能
  */
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useFAQ = () => {
   const [faqs, setFaqs] = useState([]);
@@ -10,11 +11,14 @@ export const useFAQ = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [expandedItems, setExpandedItems] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const { currentUser } = useAuth();
 
   // 模擬從 API 獲取 FAQ 數據
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
+        setIsLoading(true);
         // 這裡應該是實際的 API 調用
         // const response = await faqService.getFAQs();
         // setFaqs(response.data);
@@ -54,9 +58,9 @@ export const useFAQ = () => {
         ];
         
         setFaqs(mockFAQs);
-        setIsLoading(false);
       } catch (error) {
         console.error('獲取 FAQ 失敗:', error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -64,25 +68,56 @@ export const useFAQ = () => {
     fetchFAQs();
   }, []);
 
-  // 處理搜尋功能
-  useEffect(() => {
-    if (!searchQuery.trim()) {
+  // 使用 AI 搜尋功能
+  const searchWithAI = async (query) => {
+    if (!query.trim() || isSearching) return;
+    
+    try {
+      setIsSearching(true);
+      setSearchQuery(query);
+      
+      // 這裡應該是實際的 AI API 調用
+      // const response = await aiService.searchFAQ(query);
+      
+      // 模擬 AI 處理延遲
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 模擬 AI 搜尋結果
+      const aiResults = faqs.filter(faq => {
+        const searchTerms = query.toLowerCase().split(' ');
+        return searchTerms.some(term => 
+          faq.question.toLowerCase().includes(term) ||
+          faq.answer.toLowerCase().includes(term) ||
+          faq.tags?.some(tag => tag.toLowerCase().includes(term))
+        );
+      });
+
+      // 如果沒有找到完全匹配的結果，生成一個 AI 回答
+      if (aiResults.length === 0) {
+        const aiAnswer = {
+          id: Date.now(),
+          question: query,
+          answer: `根據您的問題「${query}」，我建議您可以：\n\n1. 直接到聊天室與 AI 助手進行更深入的對話\n2. 瀏覽相關的學習資源\n3. 參考其他使用者的相似問題`,
+          tags: ['AI回答', '客製化'],
+          isAIGenerated: true
+        };
+        setSearchResults([aiAnswer]);
+      } else {
+        setSearchResults(aiResults);
+      }
+    } catch (error) {
+      console.error('AI 搜尋失敗:', error);
       setSearchResults([]);
-      return;
+    } finally {
+      setIsSearching(false);
     }
+  };
 
-    // 使用模糊搜尋比對問題和答案
-    const results = faqs.filter(faq => {
-      const query = searchQuery.toLowerCase();
-      return (
-        faq.question.toLowerCase().includes(query) ||
-        faq.answer.toLowerCase().includes(query) ||
-        faq.tags?.some(tag => tag.toLowerCase().includes(query))
-      );
-    });
-
-    setSearchResults(results);
-  }, [searchQuery, faqs]);
+  // 清除搜尋
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   // 處理展開/收合
   const toggleItem = (id) => {
@@ -101,7 +136,10 @@ export const useFAQ = () => {
     setSearchQuery,
     searchResults,
     isLoading,
+    isSearching,
     expandedItems,
-    toggleItem
+    toggleItem,
+    searchWithAI,
+    clearSearch
   };
 }; 

@@ -36,13 +36,11 @@ const RootLayout = () => {
 const Sign = lazy(() => import('./pages/Sign'));
 const Register = lazy(() => import('./pages/Register')); 
 const HomePage = lazy(() => import('./pages/HomePage'));
-const NewPost = lazy(() => import('./pages/NewPost'));
-const Post = lazy(() => import('./pages/Post'));
 const Profile = lazy(() => import('./pages/Profile'));
-const EditPost = lazy(() => import('./pages/EditPost'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const ImageManager = lazy(() => import('./pages/ImageManager'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const FAQPage = lazy(() => import('./pages/FAQPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 /**
@@ -52,14 +50,12 @@ const NotFound = lazy(() => import('./pages/NotFound'));
  */
 export const ROUTES = {
     HOME: '/',
-    SIGN: '/sign',
-    REGISTER: '/register', 
-    NEW_POST: '/new-post',
-    POST_DETAIL: '/post/:id',
-    EDIT_POST: '/edit-post/:id',
+    CHAT: '/chat',
+    FAQ: '/faq',
     PROFILE: '/profile',
     ADMIN: '/admin',
-    IMAGE_MANAGER: '/admin/images',
+    SIGN: '/sign',
+    REGISTER: '/register',
     RESET_PASSWORD: '/reset-password'
 };
 
@@ -103,6 +99,30 @@ export const routes = [
         public: true
       },
       {
+        path: ROUTES.CHAT,
+        element: withSuspense(ChatPage, 'AI 對話'),
+        title: 'AI 對話',
+        public: true
+      },
+      {
+        path: ROUTES.FAQ,
+        element: withSuspense(FAQPage, 'FAQ'),
+        title: 'FAQ',
+        public: true
+      },
+      {
+        path: ROUTES.PROFILE,
+        element: withSuspense(Profile, '個人資料', true),
+        title: '個人資料',
+        auth: true
+      },
+      {
+        path: ROUTES.ADMIN,
+        element: withSuspense(AdminPanel, '管理後台', true, true),
+        title: '管理後台',
+        admin: true
+      },
+      {
         path: ROUTES.SIGN,
         element: withSuspense(Sign, '登入'),
         title: '登入',
@@ -113,42 +133,6 @@ export const routes = [
         element: withSuspense(Register, '註冊'),
         title: '註冊',
         public: true
-      },
-      {
-        path: ROUTES.NEW_POST,
-        element: withSuspense(NewPost, '發表文章', true),
-        title: '發表文章',
-        auth: true
-      },
-      {
-        path: ROUTES.POST_DETAIL,
-        element: withSuspense(Post, '文章詳情'),
-        title: '文章詳情',
-        public: true
-      },
-      {
-        path: ROUTES.EDIT_POST,
-        element: withSuspense(EditPost, '編輯文章', true),
-        title: '編輯文章',
-        auth: true
-      },
-      {
-        path: ROUTES.PROFILE,
-        element: withSuspense(Profile, '個人資料', true),
-        title: '個人資料',
-        auth: true
-      },
-      {
-        path: ROUTES.ADMIN,
-        element: withSuspense(AdminPanel, '管理員面板', true, true),
-        title: '管理員面板',
-        admin: true
-      },
-      {
-        path: ROUTES.IMAGE_MANAGER,
-        element: withSuspense(ImageManager, '圖片管理', true, true),
-        title: '圖片管理',
-        admin: true
       },
       {
         path: ROUTES.RESET_PASSWORD,

@@ -1,12 +1,24 @@
 /**
  * FAQ 搜尋欄組件
+ * 提供搜尋功能的輸入框組件,包含搜尋圖標和提交按鈕
+ * 
+ * @param {string} value - 搜尋框的初始值
+ * @param {function} onChange - 當輸入值改變時的回調函數
+ * @param {function} onSearch - 當提交搜尋時的回調函數
+ * @param {boolean} isSearching - 是否正在搜尋中的狀態
+ * @param {string} placeholder - 搜尋框的佔位提示文字
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
+  // 管理輸入框的值
   const [inputValue, setInputValue] = useState(value);
 
+  /**
+   * 處理表單提交
+   * @param {Event} e - 表單提交事件
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!inputValue.trim() || isSearching) return;
@@ -14,6 +26,10 @@ const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
     onSearch(inputValue);
   };
 
+  /**
+   * 處理鍵盤按下事件
+   * @param {KeyboardEvent} e - 鍵盤事件
+   */
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSubmit(e);
@@ -21,6 +37,7 @@ const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
   };
 
   return (
+    // 使用 framer-motion 添加動畫效果
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -28,6 +45,7 @@ const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
       className="relative"
     >
       <form onSubmit={handleSubmit} className="relative">
+        {/* 搜尋輸入框 */}
         <input
           type="text"
           value={inputValue}
@@ -37,14 +55,17 @@ const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
           disabled={isSearching}
           className="w-full px-4 py-3 pl-12 pr-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         />
+        {/* 左側搜尋圖標或載入動畫 */}
         <div className="absolute left-4 top-3.5">
           {isSearching ? (
+            // 載入中動畫
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"
             />
           ) : (
+            // 搜尋圖標
             <svg
               className="h-5 w-5 text-gray-400 dark:text-gray-500"
               xmlns="http://www.w3.org/2000/svg"
@@ -61,6 +82,7 @@ const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
             </svg>
           )}
         </div>
+        {/* 提交按鈕 */}
         <button
           type="submit"
           disabled={!inputValue.trim() || isSearching}
@@ -85,4 +107,4 @@ const SearchBar = ({ value, onChange, onSearch, isSearching, placeholder }) => {
   );
 };
 
-export default SearchBar; 
+export default SearchBar;

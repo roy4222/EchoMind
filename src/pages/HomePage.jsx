@@ -73,7 +73,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 transition-all duration-300 ${
+    <div className={`min-h-screen bg-gray-150 dark:bg-gray-900 pt-16 transition-all duration-300 ${
       isSidebarCollapsed 
         ? 'md:pl-16' 
         : 'md:pl-64'

@@ -14,6 +14,12 @@ export const useChat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isChatReady, setIsChatReady] = useState(false);
+  const [currentModel, setCurrentModel] = useState('llama-3.1-8b-instant'); // 預設模型
+
+  // 監聽模型變更
+  useEffect(() => {
+    console.log('🤖 切換至模型:', currentModel);
+  }, [currentModel]);
 
   // 初始化聊天
   useEffect(() => {
@@ -56,6 +62,9 @@ export const useChat = () => {
     setInputMessage('');
     setIsTyping(true);
 
+    console.log('💬 使用模型回答:', currentModel);
+    console.log('📝 用戶問題:', inputMessage);
+
     try {
       // 使用 GROQ API 獲取回應
       const response = await sendChatMessage([
@@ -67,10 +76,12 @@ export const useChat = () => {
         id: Date.now() + 1,
         type: 'bot',
         content: response,
-        timestamp: new Date()
+        timestamp: new Date(),
+        model: currentModel // 記錄使用的模型
       };
 
       setMessages(prev => [...prev, botMessage]);
+      console.log('✅ 回答完成，使用模型:', currentModel);
 
       // 儲存聊天記錄
       if (!chatId) {
@@ -80,7 +91,8 @@ export const useChat = () => {
           date: new Date().toISOString().split('T')[0],
           preview: userMessage.content,
           messages: [...messages, userMessage, botMessage],
-          userId: currentUser?.uid
+          userId: currentUser?.uid,
+          model: currentModel // 記錄使用的模型
         };
         await saveChatHistory(chatHistory);
       }
@@ -92,7 +104,8 @@ export const useChat = () => {
           id: Date.now() + 1,
           type: 'bot',
           content: '抱歉，我現在無法正確處理您的訊息。請稍後再試。',
-          timestamp: new Date()
+          timestamp: new Date(),
+          model: currentModel // 記錄使用的模型
         }
       ]);
     } finally {
@@ -106,6 +119,8 @@ export const useChat = () => {
     setInputMessage,
     isTyping,
     handleSubmit,
-    isChatReady
+    isChatReady,
+    currentModel,
+    setCurrentModel
   };
 }; 

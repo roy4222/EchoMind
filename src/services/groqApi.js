@@ -28,7 +28,7 @@ const selectModel = (content) => {
   // 根據複雜度選擇模型
   if (isComplex) {
     // 對於複雜查詢使用更強大的模型
-    return 'deepseek-r1-distill-qwen-32b';
+    return 'deepseek-r1-distill-llama-70b';
   } else {
     // 對於一般對話使用較輕量的模型
     return 'llama-3.1-8b-instant';

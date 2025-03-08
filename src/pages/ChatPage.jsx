@@ -45,7 +45,7 @@ const ChatPage = () => {
 
   return (
     <div className="fixed inset-0 pt-16">
-      <div className="h-full bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="h-full bg-gray-50 dark:bg-gray-900">
         <motion.div
           className={`h-full transition-all duration-300 ${
             isSidebarCollapsed 

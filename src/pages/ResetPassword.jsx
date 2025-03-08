@@ -41,7 +41,7 @@ const ResetPassword = () => {
 
   return (
     // 主容器 - 全屏高度、居中顯示、漸變背景
-    <div className="min-h-screen flex items-center justify-center dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       {/* 重設密碼卡片 - 有陰影和懸停效果 */}
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg transform transition-all hover:scale-[1.01]">
         {/* 標題區域 */}

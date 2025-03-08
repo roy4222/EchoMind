@@ -1,3 +1,6 @@
+/**
+ * 首頁組件
+ */
 import React, { useState, useEffect } from 'react';
 import LoadingState from '../components/UI/LoadingState';
 import SuccessMessage from '../components/UI/SuccessMessage';
@@ -9,7 +12,7 @@ const HomePage = () => {
   const [message, setMessage] = useState({ type: '', content: '' });
   const { isSidebarCollapsed } = useAuth();
   
-  const [features, setFeatures] = useState([
+  const [features] = useState([
     {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" viewBox="0 0 24 24">
@@ -45,7 +48,6 @@ const HomePage = () => {
   useEffect(() => {
     const initializeHomePage = async () => {
       try {
-        // 模擬資料載入
         await new Promise(resolve => setTimeout(resolve, 100));
         setMessage({ type: 'success'});
       } catch (error) {
@@ -71,68 +73,62 @@ const HomePage = () => {
   }
 
   return (
-    <div className="fixed inset-0 pt-16">
-      <div className="h-full bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <div className={`h-full transition-all duration-300 ${
-          isSidebarCollapsed 
-            ? 'md:pl-16' 
-            : 'md:pl-64'
-        }`}>
-          <div className="h-full overflow-y-auto">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-6">
-                  歡迎來到 EchoMind
-                </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
-                  回聲心語 - 您的智慧教育助理
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 transition-all duration-300 ${
+      isSidebarCollapsed 
+        ? 'md:pl-16' 
+        : 'md:pl-64'
+    }`}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-6">
+            歡迎來到 EchoMind
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+            回聲心語 - 您的智慧教育助理
+          </p>
+          
+          <div className="text-base text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+            整合 AI 技術的教育助理平台，為您提供智能問答、情感支持和個人化學習建議
+          </div>
+          
+          <div className="flex justify-center mb-16">
+            <Link
+              to="/chat"
+              className="inline-flex items-center px-8 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 transform hover:scale-105"
+            >
+              <span className="text-lg font-semibold">立即體驗</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5 ml-2" 
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105"
+              >
+                <div className={`${feature.color} text-3xl mb-4`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {feature.description}
                 </p>
-                
-                <div className="text-base text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
-                  整合 AI 技術的教育助理平台，為您提供智能問答、情感支持和個人化學習建議
-                </div>
-                
-                <div className="flex justify-center mb-16">
-                  <Link
-                    to="/chat"
-                    className="inline-flex items-center px-8 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 transform hover:scale-105"
-                  >
-                    <span className="text-lg font-semibold">立即體驗</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className="h-5 w-5 ml-2" 
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </Link>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-                  {features.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105"
-                    >
-                      <div className={`${feature.color} text-3xl mb-4`}>
-                        {feature.icon}
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        {feature.title}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {feature.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

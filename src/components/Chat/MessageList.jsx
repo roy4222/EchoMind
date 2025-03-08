@@ -5,6 +5,54 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// 格式化訊息內容，處理標題格式
+const formatMessage = (content) => {
+  // 分行處理
+  const lines = content.split('\n');
+  const formattedLines = lines.map((line, index) => {
+    // 檢查是否包含 ** 標記
+    if (line.includes('**')) {
+      // 將行內容分割成普通文字和加粗文字
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      const formattedParts = parts.map((part, partIndex) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          // 移除 ** 並套用加粗樣式
+          const text = part.slice(2, -2);
+          if (/^\d+\./.test(text)) {
+            // 如果是數字開頭（如：1.），使用藍色
+            return (
+              <span key={partIndex} className="font-semibold text-blue-500 dark:text-blue-400">
+                {text}
+              </span>
+            );
+          }
+          return (
+            <span key={partIndex} className="font-semibold">
+              {text}
+            </span>
+          );
+        }
+        return <span key={partIndex}>{part}</span>;
+      });
+
+      return (
+        <div key={index} className="mb-2">
+          {formattedParts}
+        </div>
+      );
+    }
+
+    // 一般文字
+    return (
+      <div key={index} className="mb-2">
+        {line}
+      </div>
+    );
+  });
+
+  return <div className="space-y-1">{formattedLines}</div>;
+};
+
 const MessageList = ({ messages, isTyping }) => {
   const messagesEndRef = useRef(null);
 
@@ -48,15 +96,15 @@ const MessageList = ({ messages, isTyping }) => {
               }`}
             >
               <div
-                className={`max-w-[70%] rounded-lg p-4 ${
+                className={`max-w-[80%] rounded-lg p-4 ${
                   message.type === 'user'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 dark:text-white'
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap break-words">
-                  {message.content}
-                </p>
+                <div className="text-sm whitespace-pre-wrap break-words">
+                  {formatMessage(message.content)}
+                </div>
                 <span className="text-xs opacity-75 mt-2 block">
                   {formatTime(message.timestamp)}
                 </span>

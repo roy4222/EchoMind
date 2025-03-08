@@ -3,45 +3,50 @@
  * 處理對話邏輯
  */
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { sendChatMessage, saveChatHistory } from '../services/groqApi';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useChat = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'bot',
-      content: '你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？',
-      timestamp: new Date()
-    }
-  ]);
+  const { chatId } = useParams();
+  const { currentUser } = useAuth();
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isChatReady, setIsChatReady] = useState(false);
 
-  // 模擬 AI 初始化
+  // 初始化聊天
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        // 這裡應該是實際的 AI 服務初始化
-        // await aiService.initialize();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsChatReady(false);
+        // 如果是新對話，添加歡迎訊息
+        if (!chatId) {
+          setMessages([{
+            id: 1,
+            type: 'bot',
+            content: '你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？',
+            timestamp: new Date()
+          }]);
+        }
+        // TODO: 如果有 chatId，從後端載入歷史對話
         setIsChatReady(true);
       } catch (error) {
-        console.error('AI 服務初始化失敗:', error);
-        setIsChatReady(true); // 開發時暫時設為 true
+        console.error('初始化聊天失敗:', error);
+        setIsChatReady(true);
       }
     };
 
     initializeChat();
-  }, []);
+  }, [chatId]);
 
   // 處理訊息發送
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim() || isTyping) return;
 
-    // 新增使用者訊息
     const userMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       type: 'user',
       content: inputMessage,
       timestamp: new Date()
@@ -52,24 +57,39 @@ export const useChat = () => {
     setIsTyping(true);
 
     try {
-      // 模擬 AI 回應
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 使用 GROQ API 獲取回應
+      const response = await sendChatMessage([
+        ...messages,
+        userMessage
+      ]);
 
-      // 模擬 AI 回應
       const botMessage = {
-        id: messages.length + 2,
+        id: Date.now() + 1,
         type: 'bot',
-        content: generateResponse(inputMessage),
+        content: response,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, botMessage]);
+
+      // 儲存聊天記錄
+      if (!chatId) {
+        const chatHistory = {
+          id: Date.now().toString(),
+          title: userMessage.content.slice(0, 50) + (userMessage.content.length > 50 ? '...' : ''),
+          date: new Date().toISOString().split('T')[0],
+          preview: userMessage.content,
+          messages: [...messages, userMessage, botMessage],
+          userId: currentUser?.uid
+        };
+        await saveChatHistory(chatHistory);
+      }
     } catch (error) {
       console.error('處理訊息失敗:', error);
       setMessages(prev => [
         ...prev,
         {
-          id: messages.length + 2,
+          id: Date.now() + 1,
           type: 'bot',
           content: '抱歉，我現在無法正確處理您的訊息。請稍後再試。',
           timestamp: new Date()
@@ -78,19 +98,6 @@ export const useChat = () => {
     } finally {
       setIsTyping(false);
     }
-  };
-
-  // 模擬回應生成
-  const generateResponse = (input) => {
-    const responses = [
-      '這是個很好的問題！讓我來幫你解答...',
-      '我理解你的困惑，讓我們一步一步來分析...',
-      '根據我的理解，這個問題可以這樣思考...',
-      '這個問題有幾個重要的面向需要考慮...',
-      '讓我為你整理一下相關的重點...'
-    ];
-    return responses[Math.floor(Math.random() * responses.length)] +
-           '\n\n這是一個示範回應。在實際應用中，這裡會串接 AI API 來獲得更智能的回答。';
   };
 
   return {

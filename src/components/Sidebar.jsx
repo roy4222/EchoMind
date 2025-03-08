@@ -1,10 +1,12 @@
 // 引入必要的 React 相關套件
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 // 引入身份驗證相關 Context
 import { useAuth } from '../contexts/AuthContext';
 // 引入導航連結配置
 import { NAV_LINKS } from '../config/navLinks';
+// 引入 GROQ API 服務
+import { getChatHistory, deleteChatHistory } from '../services/groqApi';
 
 // 側邊欄組件
 const Sidebar = () => {
@@ -13,19 +15,44 @@ const Sidebar = () => {
   // 獲取當前路由位置
   const location = useLocation();
   const [expandHistory, setExpandHistory] = useState(true);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 模擬聊天歷史數據
-  const chatHistory = [
-    { id: 1, title: '關於數學學習方法的討論', date: '2024-03-20', preview: '我想了解如何更有效地學習數學...' },
-    { id: 2, title: '英語口說練習建議', date: '2024-03-19', preview: '請問有什麼方法可以提升英語口說能力？' },
-    { id: 3, title: '物理概念釐清', date: '2024-03-18', preview: '我對力學的基本概念有些疑問...' },
-  ];
+  // 載入聊天歷史
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      if (!currentUser) return;
+      
+      try {
+        setIsLoading(true);
+        const history = await getChatHistory(currentUser.uid);
+        setChatHistory(history);
+      } catch (error) {
+        console.error('載入聊天歷史失敗:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadChatHistory();
+  }, [currentUser]);
+
+  // 處理刪除聊天記錄
+  const handleDelete = async (e, chatId) => {
+    e.preventDefault(); // 防止觸發 Link 點擊
+    try {
+      await deleteChatHistory(chatId);
+      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+    } catch (error) {
+      console.error('刪除聊天記錄失敗:', error);
+    }
+  };
 
   // 根據用戶權限過濾導航連結
   const filteredNavLinks = NAV_LINKS.filter(link => {
-    if (link.public) return true; // 公開連結
-    if (link.admin) return isAdmin(); // 管理員專用連結
-    if (link.auth) return !!currentUser; // 需要登入的連結
+    if (link.public) return true;
+    if (link.admin) return isAdmin();
+    if (link.auth) return !!currentUser;
     return false;
   });
 
@@ -91,21 +118,41 @@ const Sidebar = () => {
               {/* 歷史記錄列表 */}
               {expandHistory && (
                 <div className="mt-2 space-y-1">
-                  {chatHistory.map((chat) => (
-                    <Link
-                      key={chat.id}
-                      to={`/chat/${chat.id}`}
-                      className="block px-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <div className="font-medium truncate">{chat.title}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {chat.date}
+                  {isLoading ? (
+                    <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+                      載入中...
+                    </div>
+                  ) : chatHistory.length > 0 ? (
+                    chatHistory.map((chat) => (
+                      <div
+                        key={chat.id}
+                        className="group relative block px-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      >
+                        <Link to={`/chat/${chat.id}`} className="block">
+                          <div className="font-medium truncate pr-6">{chat.title}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {chat.date}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
+                            {chat.preview}
+                          </div>
+                        </Link>
+                        <button
+                          onClick={(e) => handleDelete(e, chat.id)}
+                          className="absolute right-2 top-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="刪除對話"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                        {chat.preview}
-                      </div>
-                    </Link>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+                      尚無聊天記錄
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -1,0 +1,86 @@
+/**
+ * 全局樣式表
+ * 定義整個應用程式的基礎樣式和主題
+ */
+
+/* 引入 Tailwind CSS 的基礎、組件和工具類 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * 全局基礎樣式
+ * 定義應用程式的基本樣式設定
+ */
+@layer base {
+  /* 設定平滑字體渲染 */
+  html {
+    @apply antialiased;
+  }
+  
+  /* 設定基本顏色方案，包含亮色和暗色模式 */
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  }
+}
+
+/**
+ * 自定義組件樣式
+ * 定義可重複使用的 UI 組件樣式
+ */
+@layer components {
+  /* 基本按鈕樣式 */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  }
+  
+  /* 主要按鈕樣式 - 用於主要操作 */
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  
+  /* 次要按鈕樣式 - 用於次要操作，支援亮色和暗色模式 */
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+  }
+}
+
+/**
+ * 自定義工具類
+ * 定義特殊用途的工具類樣式
+ */
+@layer utilities {
+  /* 優化內容渲染性能的工具類 */
+  .content-auto {
+    content-visibility: auto;
+  }
+}
+
+/**
+ * CSS 變數定義
+ * 設定全局顏色變數，方便主題定制
+ */
+:root {
+  --primary-color: #4a90e2;    /* 主要強調色 */
+  --secondary-color: #f39c12;  /* 次要強調色 */
+  --text-color: #2c3e50;       /* 主要文字顏色 */
+  --background-color: #f5f6fa; /* 主要背景顏色 */
+}
+
+/**
+ * 基本 body 樣式
+ * 設定頁面的基本排版和視覺效果
+ */
+body {
+  margin: 0;
+  /* 系統字體堆疊，確保在各平台上的最佳顯示效果 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  /* 優化字體渲染 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 使用 CSS 變數設定顏色 */
+  background-color: var(--background-color);
+  color: var(--text-color);
+} 

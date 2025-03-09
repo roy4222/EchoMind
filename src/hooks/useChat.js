@@ -46,11 +46,11 @@ export const useChat = () => {
             setCurrentModel(chatData.model);
           }
         } else {
-          // 如果是新對話，添加歡迎訊息
+          // 修改新對話的歡迎訊息
           setMessages([{
             id: 1,
             type: 'bot',
-            content: '你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？',
+            content: `${currentUser?.displayName || '訪客'}你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？`,
             timestamp: new Date()
           }]);
         }
@@ -74,8 +74,8 @@ export const useChat = () => {
     setMessages([{
       id: Date.now(),
       type: 'bot',
-      content: '你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？',
-      timestamp: new Date()
+      content: `${currentUser?.displayName || '訪客'}你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？`,
+          timestamp: new Date()
     }]);
   };
 

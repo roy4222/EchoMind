@@ -28,16 +28,19 @@ const ChatBox = ({
             <div className="relative">
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg">
                 <svg 
-                  className="w-6 h-6 text-white" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="128"
+                  height="128"
                   viewBox="0 0 24 24"
+                  className="w-6 h-6 text-white"
                 >
                   <path 
-                    strokeLinecap="round" 
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
                     strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" 
+                    strokeWidth="2"
+                    d="M12 6V2H8m0 16l-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Zm-6-6h2m5-1v2m6-2v2m5-1h2"
                   />
                 </svg>
               </div>

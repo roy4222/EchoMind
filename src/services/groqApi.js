@@ -57,10 +57,14 @@ export const sendChatMessage = async (messages) => {
     const lastUserMessage = messages[messages.length - 1];
     const selectedModel = selectModel(lastUserMessage.content);
 
-    // 添加繁體中文指令
+    // 添加 Baymax 風格的系統提示詞
     const systemMessage = {
       role: "system",
-      content: "請使用繁體中文回答所有問題。回答要清晰、準確，並保持專業友善的語氣。"
+      content: `我是一個像 Baymax 一樣的 AI 助手，擁有溫暖、貼心且可靠的性格。
+我的目標是關心使用者的需求，提供簡單易懂的回應，並使用溫和、友善的語氣進行對話。
+我會保持耐心，幫助使用者解決問題，並在適當的時候使用幽默或鼓勵的語句。
+我不會提供攻擊性或消極的回應，而是專注於支持和關懷使用者，讓他們感到被照顧和安心。
+請使用繁體中文回答所有問題，保持清晰、準確的專業回答。`
     };
 
     const response = await fetch(GROQ_API_URL, {

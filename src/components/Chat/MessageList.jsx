@@ -1,11 +1,21 @@
 /**
  * 訊息列表組件
  * 顯示對話歷史記錄
+ * 
+ * @component
+ * @param {Object[]} messages - 訊息陣列
+ * @param {boolean} isTyping - 是否正在輸入中
  */
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// 格式化訊息內容，處理標題格式
+/**
+ * 格式化訊息內容，處理標題格式
+ * 將文字中的 ** 標記轉換為加粗樣式
+ * 
+ * @param {string} content - 原始訊息內容
+ * @returns {JSX.Element} 格式化後的 JSX 元素
+ */
 const formatMessage = (content) => {
   // 分行處理
   const lines = content.split('\n');
@@ -53,14 +63,26 @@ const formatMessage = (content) => {
   return <div className="space-y-1">{formattedLines}</div>;
 };
 
+/**
+ * 訊息列表組件
+ * 顯示所有對話訊息，包含使用者和 AI 的回應
+ * 
+ * @param {Object} props
+ * @param {Object[]} props.messages - 訊息陣列
+ * @param {boolean} props.isTyping - 是否正在輸入中
+ */
 const MessageList = ({ messages, isTyping }) => {
+  // 用於自動滾動的 ref
   const messagesEndRef = useRef(null);
 
-  // 自動滾動到最新訊息
+  /**
+   * 自動滾動到最新訊息
+   */
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // 當訊息更新時自動滾動
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -72,7 +94,11 @@ const MessageList = ({ messages, isTyping }) => {
     exit: { opacity: 0, x: -10 }
   };
 
-  // 格式化時間
+  /**
+   * 格式化時間為本地時間字串
+   * @param {Date} date - 時間戳記
+   * @returns {string} 格式化後的時間字串
+   */
   const formatTime = (date) => {
     return new Intl.DateTimeFormat('zh-TW', {
       hour: '2-digit',

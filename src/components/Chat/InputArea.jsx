@@ -1,11 +1,23 @@
 /**
  * 輸入區域組件
  * 處理訊息輸入和發送
+ * 
+ * @component
+ * @param {Object} props
+ * @param {string} props.value - 輸入框的值
+ * @param {function} props.onChange - 處理輸入值變更的函數
+ * @param {function} props.onSubmit - 處理表單提交的函數
+ * @param {boolean} props.isTyping - 是否正在輸入中的狀態
  */
 import React from 'react';
 import { motion } from 'framer-motion';
 
 const InputArea = ({ value, onChange, onSubmit, isTyping }) => {
+  /**
+   * 處理表單提交
+   * 如果輸入為空或正在輸入中則不提交
+   * @param {Event} e - 表單提交事件
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!value.trim() || isTyping) return;
@@ -13,8 +25,10 @@ const InputArea = ({ value, onChange, onSubmit, isTyping }) => {
   };
 
   return (
+    // 表單容器,包含輸入框和發送按鈕
     <form onSubmit={handleSubmit} className="p-4 border-t dark:border-gray-700">
       <div className="flex space-x-4">
+        {/* 訊息輸入框 */}
         <motion.input
           type="text"
           value={value}
@@ -24,6 +38,7 @@ const InputArea = ({ value, onChange, onSubmit, isTyping }) => {
           className="flex-grow p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           whileFocus={{ scale: 1.01 }}
         />
+        {/* 發送按鈕 */}
         <motion.button
           type="submit"
           disabled={!value.trim() || isTyping}
@@ -33,6 +48,7 @@ const InputArea = ({ value, onChange, onSubmit, isTyping }) => {
           transition={{ duration: 0.2 }}
         >
           <span className="flex items-center">
+            {/* 發送圖示 */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5 mr-1 transform rotate-90"

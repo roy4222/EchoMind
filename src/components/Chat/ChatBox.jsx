@@ -1,6 +1,15 @@
 /**
  * 聊天框組件
  * 作為聊天介面的主要容器
+ * 
+ * @component
+ * @param {Object} props
+ * @param {ReactNode} props.children - 子組件,通常包含訊息列表和輸入區域
+ * @param {string} props.currentModel - 當前選擇的 AI 模型
+ * @param {function} props.onModelSelect - 處理模型選擇變更的函數
+ * @param {boolean} props.showModelList - 是否顯示模型列表
+ * @param {function} props.onToggleModelList - 切換模型列表顯示的函數
+ * @param {function} props.onNewChat - 開始新對話的處理函數
  */
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -15,18 +24,21 @@ const ChatBox = ({
   onNewChat
 }) => {
   return (
+    // 主容器,使用 Framer Motion 添加淡入動畫
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
     >
-      {/* 頂部標題區域 */}
+      {/* 頂部標題區域 - 包含頭像、標題和功能按鈕 */}
       <div className="shrink-0 px-6 py-4 border-b dark:border-gray-700 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-gray-750/80 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {/* AI 助手頭像 */}
+            {/* AI 助手頭像區域 - 包含頭像和在線狀態 */}
             <div className="relative">
+              {/* 頭像背景 */}
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                {/* AI 助手圖標 */}
                 <svg 
                   xmlns="http://www.w3.org/2000/svg"
                   width="128"
@@ -48,11 +60,13 @@ const ChatBox = ({
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
             </div>
             
-            {/* 標題和模型資訊 */}
+            {/* 標題和模型選擇器區域 */}
             <div className="flex-1">
+              {/* 漸層標題文字 */}
               <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
                 AI 助手對話
               </h2>
+              {/* 模型選擇器組件 */}
               <ModelSelector
                 currentModel={currentModel}
                 onModelSelect={onModelSelect}
@@ -62,13 +76,15 @@ const ChatBox = ({
             </div>
           </div>
 
-          {/* 右側功能按鈕區 */}
+          {/* 右側功能按鈕區域 */}
           <div className="flex items-center space-x-2">
+            {/* 新對話按鈕 */}
             <button
               onClick={onNewChat}
               className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               title="開始新對話"
             >
+              {/* 新對話圖標 */}
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 width="20" 
@@ -86,6 +102,7 @@ const ChatBox = ({
         </div>
       </div>
 
+      {/* 聊天內容區域 */}
       {children}
     </motion.div>
   );

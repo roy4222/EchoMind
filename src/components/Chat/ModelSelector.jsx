@@ -111,6 +111,7 @@ const ModelSelector = ({ currentModel, onModelSelect, showModelList, onToggleMod
       <button
         onClick={onToggleModelList}
         className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 flex items-center space-x-1"
+        title="選擇模型"
       >
         <span>{getCurrentModel().icon}</span>
         <span>{getCurrentModel().name}</span>

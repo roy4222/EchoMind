@@ -1,9 +1,14 @@
 /**
  * GROQ API 服務
  */
+import { db } from '../utils/firebase';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+// 聊天記錄集合名稱
+const CHATS_COLLECTION = 'chats';
 
 /**
  * 根據訊息內容選擇合適的模型
@@ -103,13 +108,38 @@ export const sendChatMessage = async (messages) => {
  * @returns {Promise}
  */
 export const saveChatHistory = async (chat) => {
-  // 這裡應該實現與後端 API 的整合
-  // 目前先使用 localStorage 模擬
   try {
-    const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    history.unshift(chat);
-    localStorage.setItem('chatHistory', JSON.stringify(history));
-    return chat;
+    // 檢查是否為更新現有聊天記錄
+    if (chat.id) {
+      // 更新現有聊天記錄
+      const chatRef = doc(db, CHATS_COLLECTION, chat.id);
+      
+      // 檢查文檔是否存在
+      const docSnap = await getDoc(chatRef);
+      if (!docSnap.exists()) {
+        throw new Error(`聊天記錄 ID ${chat.id} 不存在`);
+      }
+      
+      // 更新文檔
+      await updateDoc(chatRef, {
+        messages: chat.messages,
+        updatedAt: new Date(),
+        model: chat.model
+      });
+      
+      console.log('聊天記錄已更新，ID:', chat.id);
+      return chat;
+    } else {
+      // 創建新的聊天記錄
+      const docRef = await addDoc(collection(db, CHATS_COLLECTION), {
+        ...chat,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      console.log('聊天記錄已儲存至 Firestore，ID:', docRef.id);
+      return { ...chat, id: docRef.id };
+    }
   } catch (error) {
     console.error('儲存聊天記錄失敗:', error);
     throw error;
@@ -122,11 +152,23 @@ export const saveChatHistory = async (chat) => {
  * @returns {Promise}
  */
 export const getChatHistory = async (userId) => {
-  // 這裡應該實現與後端 API 的整合
-  // 目前先使用 localStorage 模擬
   try {
-    const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    return history;
+    // 從 Firestore 獲取特定用戶的聊天記錄
+    const q = query(collection(db, CHATS_COLLECTION), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    
+    const history = [];
+    querySnapshot.forEach((doc) => {
+      history.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    // 按更新時間排序，最新的在前面
+    return history.sort((a, b) => {
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    });
   } catch (error) {
     console.error('獲取聊天記錄失敗:', error);
     throw error;
@@ -140,12 +182,36 @@ export const getChatHistory = async (userId) => {
  */
 export const deleteChatHistory = async (chatId) => {
   try {
-    const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    const newHistory = history.filter(chat => chat.id !== chatId);
-    localStorage.setItem('chatHistory', JSON.stringify(newHistory));
+    // 從 Firestore 刪除特定聊天記錄
+    await deleteDoc(doc(db, CHATS_COLLECTION, chatId));
+    console.log('聊天記錄已刪除，ID:', chatId);
     return true;
   } catch (error) {
     console.error('刪除聊天記錄失敗:', error);
+    throw error;
+  }
+};
+
+/**
+ * 獲取單個聊天記錄詳情
+ * @param {string} chatId - 聊天記錄 ID
+ * @returns {Promise}
+ */
+export const getChatById = async (chatId) => {
+  try {
+    const docRef = doc(db, CHATS_COLLECTION, chatId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...docSnap.data()
+      };
+    } else {
+      throw new Error('找不到該聊天記錄');
+    }
+  } catch (error) {
+    console.error('獲取聊天記錄詳情失敗:', error);
     throw error;
   }
 }; 

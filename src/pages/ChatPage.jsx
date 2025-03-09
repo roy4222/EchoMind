@@ -5,6 +5,7 @@
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion'; // 引入動畫庫
+import { useParams, useNavigate } from 'react-router-dom'; // 引入路由相關 hook
 import ChatBox from '../components/Chat/ChatBox'; // 聊天框容器組件
 import MessageList from '../components/Chat/MessageList'; // 訊息列表組件
 import InputArea from '../components/Chat/InputArea'; // 輸入區域組件
@@ -13,6 +14,9 @@ import { useChat } from '../hooks/useChat'; // 聊天功能 Hook
 import { useAuth } from '../contexts/AuthContext'; // 認證相關 Hook
 
 const ChatPage = () => {
+  const { chatId } = useParams(); // 獲取 URL 中的 chatId 參數
+  const navigate = useNavigate(); // 用於頁面導航
+  
   // 從 useChat Hook 獲取聊天相關狀態和方法
   const {
     messages,
@@ -43,6 +47,15 @@ const ChatPage = () => {
     }
     clearMessages();
     setInputMessage('');
+    // 如果當前在特定聊天頁面，則導航回主聊天頁面
+    if (chatId) {
+      navigate('/chat');
+    }
+  };
+
+  // 返回聊天列表
+  const handleBackToList = () => {
+    navigate('/');
   };
 
   // 定義容器動畫效果
@@ -75,6 +88,19 @@ const ChatPage = () => {
           animate="visible"
           variants={containerVariants}
         >
+          {chatId && (
+            <div className="max-w-[900px] mx-auto px-4 pt-2">
+              <button 
+                onClick={handleBackToList}
+                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                返回聊天列表
+              </button>
+            </div>
+          )}
           <motion.div 
             className="h-full max-w-[900px] mx-auto px-4 py-4 md:px-6"
             variants={containerVariants}

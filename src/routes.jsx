@@ -105,6 +105,12 @@ export const routes = [
         public: true
       },
       {
+        path: `${ROUTES.CHAT}/:chatId`,
+        element: withSuspense(ChatPage, 'AI 對話'),
+        title: 'AI 對話',
+        public: true
+      },
+      {
         path: ROUTES.FAQ,
         element: withSuspense(FAQPage, 'FAQ'),
         title: 'FAQ',

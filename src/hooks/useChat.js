@@ -3,13 +3,14 @@
  * 處理對話邏輯
  */
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { sendChatMessage, saveChatHistory } from '../services/groqApi';
+import { useParams, useNavigate } from 'react-router-dom';
+import { sendChatMessage, saveChatHistory, getChatById } from '../services/groqApi';
 import { useAuth } from '../contexts/AuthContext';
 
 export const useChat = () => {
   const { chatId } = useParams();
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -26,8 +27,26 @@ export const useChat = () => {
     const initializeChat = async () => {
       try {
         setIsChatReady(false);
-        // 如果是新對話，添加歡迎訊息
-        if (!chatId) {
+        
+        // 如果有 chatId，從 Firestore 載入歷史對話
+        if (chatId) {
+          const chatData = await getChatById(chatId);
+          
+          // 確認該聊天記錄屬於當前用戶
+          if (chatData.userId !== currentUser?.uid) {
+            console.error('無權訪問此聊天記錄');
+            navigate('/');
+            return;
+          }
+          
+          setMessages(chatData.messages || []);
+          
+          // 如果聊天記錄中有使用的模型，則設置為當前模型
+          if (chatData.model) {
+            setCurrentModel(chatData.model);
+          }
+        } else {
+          // 如果是新對話，添加歡迎訊息
           setMessages([{
             id: 1,
             type: 'bot',
@@ -35,16 +54,20 @@ export const useChat = () => {
             timestamp: new Date()
           }]);
         }
-        // TODO: 如果有 chatId，從後端載入歷史對話
+        
         setIsChatReady(true);
       } catch (error) {
         console.error('初始化聊天失敗:', error);
+        // 如果載入失敗，返回首頁
+        if (chatId) {
+          navigate('/');
+        }
         setIsChatReady(true);
       }
     };
 
     initializeChat();
-  }, [chatId]);
+  }, [chatId, currentUser, navigate]);
 
   // 清空訊息
   const clearMessages = () => {
@@ -90,21 +113,40 @@ export const useChat = () => {
         model: currentModel // 記錄使用的模型
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      const updatedMessages = [...messages, userMessage, botMessage];
+      setMessages(updatedMessages);
       console.log('✅ 回答完成，使用模型:', currentModel);
 
-      // 儲存聊天記錄
-      if (!chatId) {
-        const chatHistory = {
-          id: Date.now().toString(),
-          title: userMessage.content.slice(0, 50) + (userMessage.content.length > 50 ? '...' : ''),
-          date: new Date().toISOString().split('T')[0],
-          preview: userMessage.content,
-          messages: [...messages, userMessage, botMessage],
-          userId: currentUser?.uid,
-          model: currentModel // 記錄使用的模型
-        };
-        await saveChatHistory(chatHistory);
+      // 儲存聊天記錄到 Firestore
+      try {
+        if (!chatId) {
+          // 新對話，創建新記錄
+          const chatHistory = {
+            title: userMessage.content.slice(0, 50) + (userMessage.content.length > 50 ? '...' : ''),
+            date: new Date().toISOString().split('T')[0],
+            preview: userMessage.content,
+            messages: updatedMessages,
+            userId: currentUser?.uid,
+            model: currentModel // 記錄使用的模型
+          };
+          
+          const savedChat = await saveChatHistory(chatHistory);
+          console.log('聊天記錄已保存，ID:', savedChat.id);
+          // 導航到新創建的聊天頁面
+          navigate(`/chat/${savedChat.id}`);
+        } else {
+          // 更新現有對話
+          const chatHistory = {
+            id: chatId,
+            messages: updatedMessages,
+            updatedAt: new Date(),
+            model: currentModel
+          };
+          await saveChatHistory(chatHistory);
+          console.log('聊天記錄已更新，ID:', chatId);
+        }
+      } catch (error) {
+        console.error('保存聊天記錄失敗:', error);
       }
     } catch (error) {
       console.error('處理訊息失敗:', error);

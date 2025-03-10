@@ -94,7 +94,7 @@ const FAQPage = () => {
                 variants={containerVariants}
               >
                 <h1 className="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                  智能問答系統
+                  輔大資管智能問答系統
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
                   輸入您的問題，按下 Enter 鍵或搜尋按鈕開始搜尋

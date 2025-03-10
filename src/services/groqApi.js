@@ -24,7 +24,7 @@ const selectModel = (content) => {
     '分析', '比較', '評估', '解釋',
     '為什麼', '如何', '原因',
     '程式碼', '代碼', 'code',
-    '數學', '科學', '歷史',
+    '數學', '科技', '歷史',
     '建議', '優缺點'
   ];
 
@@ -38,10 +38,10 @@ const selectModel = (content) => {
   });
 
   // 根據複雜度選擇模型
-  const selectedModel = isComplex ? 'deepseek-r1-distill-llama-70b' : 'llama-3.1-8b-instant';
+  const selectedModel = isComplex ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
   
   console.log(`問題: "${content}"`);
-  console.log(`複雜度: ${isComplex ? '高' : '低'}`);
+  console.log(`複雜度: ${isComplex ? '高' : '一般'}`);
   console.log(`選擇模型: ${selectedModel}`);
   
   return selectedModel;
@@ -226,10 +226,18 @@ export const getChatById = async (chatId) => {
 /**
  * 使用 AI 搜尋 FAQ
  * @param {string} query - 搜尋關鍵字
+ * @param {function} onThinking - 思考過程回調函數
  * @returns {Promise} - 搜尋結果
  */
-export const searchFAQWithAI = async (query) => {
+export const searchFAQWithAI = async (query, onThinking) => {
   try {
+    // 顯示初始思考過程
+    onThinking?.(`思考分析中...
+1. 正在理解問題重點：「${query}」
+2. 搜尋相關 FAQ 資料
+3. 分析資訊關聯性
+4. 整合回答內容`);
+
     // 從 Firestore 獲取所有 FAQ
     const querySnapshot = await getDocs(collection(db, FAQ_COLLECTION));
     const faqs = [];
@@ -240,62 +248,114 @@ export const searchFAQWithAI = async (query) => {
       });
     });
 
+    // 更新思考進度
+    onThinking?.(`分析進行中...
+1. ✓ 已理解問題重點
+2. ✓ 已找到 ${faqs.length} 條相關資料
+3. ⟳ 正在分析資訊關聯性
+4. ⟳ 準備整合回答`);
+
     // 構建 AI 提示詞
     const systemMessage = {
       role: "system",
-      content: `你是一個專業的 FAQ 搜尋助手。
-請根據用戶的問題，從 FAQ 列表中找出最相關的答案。
-回答時請使用以下格式：
+      content: `你是一個專業的 FAQ 搜尋助手，同時也是一位經驗豐富的學長。
+請以個人化的口吻回答用戶的問題，先展示思考過程，再給出建議和分析。
 
-# 問題：[相關問題]
-# 答案：[相關答案]
-# 標籤：[相關標籤]
+回答時請遵循以下結構：
 
-這是最相關的答案，因為...
+# 我的建議
+[以第一人稱給出明確的立場和建議，說明你認為什麼更重要/更好，為什麼？]
+例如：「以我的經驗，我建議你...因為...」
 
-<think>
-1. 首先，我理解用戶的問題是...
-2. 接著，我在 FAQ 中搜尋...
-3. 我發現...
-4. 因此，我選擇...
-5. 最後，我確認...
-</think>
+# 深入分析
+[整合 FAQ 資訊並提供完整分析]
+- 優點：...
+- 缺點：...
+- 關鍵考量：...
 
-如果沒有完全符合的答案，請給出最接近的建議，並說明為什麼這是最相關的答案。
-如果完全找不到相關答案，請建議用戶到聊天室與 AI 助手進行更深入的對話。
+# 實用建議
+[提供具體可行的行動方案]
+1. [具體建議 1]
+2. [具體建議 2]
+...
+
+請注意：
+1. 思考過程要先於建議展示
+2. 給出明確的立場和個人建議
+3. 用生動的例子說明
+4. 提供具體可行的建議
+5. 整合 FAQ 資訊但不要直接引用
+6. 使用親切的口吻
 
 FAQ 列表：
 ${faqs.map(faq => `問題：${faq.question}\n答案：${faq.answer}\n標籤：${faq.tags.join(', ')}\n---`).join('\n')}`
     };
+
+    // 更新最終思考進度
+    onThinking?.(`最終整合中...
+1. ✓ 已理解問題重點
+2. ✓ 已找到 ${faqs.length} 條相關資料
+3. ✓ 已分析資訊關聯性
+4. ⟳ 正在生成完整回答`);
 
     const userMessage = {
       role: "user",
       content: query
     };
 
-    // 發送到 GROQ API
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: selectModel(query),
-        messages: [systemMessage, userMessage],
-        temperature: 0.7,
-        max_tokens: 2048,
-        stream: false
-      }),
-    });
+    // 定義可用的模型列表
+    const models = ['deepseek-r1-distill-llama-70b', 'llama-3.3-70b-versatile'];
+    let lastError = null;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`AI 搜尋請求失敗: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
+    // 嘗試每個模型
+    for (const model of models) {
+      try {
+        onThinking?.(`使用 ${model} 模型生成回答...`);
+        
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [systemMessage, userMessage],
+            temperature: 0.7,
+            max_tokens: 2048,
+            stream: false
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.choices[0].message.content;
+        }
+
+        // 如果不是 429 錯誤，直接拋出
+        if (response.status !== 429) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`AI 搜尋請求失敗: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
+        }
+
+        // 如果是 429 錯誤，記錄並繼續嘗試下一個模型
+        const errorData = await response.json();
+        lastError = new Error(`模型 ${model} 請求限制: ${errorData.error?.message}`);
+        console.log(`切換到下一個模型，因為: ${lastError.message}`);
+        
+      } catch (error) {
+        lastError = error;
+        if (error.message.includes('429')) {
+          console.log(`模型 ${model} 達到請求限制，嘗試下一個模型...`);
+          continue;
+        }
+        throw error;
+      }
     }
 
-    const data = await response.json();
-    return data.choices[0].message.content;
+    // 如果所有模型都失敗了，拋出最後一個錯誤
+    throw lastError || new Error('所有模型都無法使用');
+
   } catch (error) {
     console.error('FAQ AI 搜尋失敗:', error);
     throw error;

@@ -10,6 +10,34 @@ import { motion } from 'framer-motion';
 import { useFAQ } from '../hooks/useFAQ';
 import { useAuth } from '../contexts/AuthContext';
 
+// 快速搜索按鈕配置
+const quickSearchButtons = [
+  {
+    text: '如何規劃四年課程？',
+    icon: '📚',
+  },
+  {
+    text: '實習和專題哪個重要？',
+    icon: '💼',
+  },
+  {
+    text: '英文門檻如何通過？',
+    icon: '🌏',
+  },
+  {
+    text: '程式能力如何提升？',
+    icon: '💻',
+  },
+  {
+    text: '雙主修/輔系選擇？',
+    icon: '📖',
+  },
+  {
+    text: '海外交換機會？',
+    icon: '✈️',
+  }
+];
+
 const FAQPage = () => {
   const { 
     faqs, 
@@ -20,7 +48,8 @@ const FAQPage = () => {
     searchResults,
     expandedItems,
     toggleItem,
-    searchWithAI
+    searchWithAI,
+    thinkingProcess
   } = useFAQ();
 
   const { isSidebarCollapsed } = useAuth();
@@ -83,6 +112,33 @@ const FAQPage = () => {
                   isSearching={isSearching}
                   placeholder="輸入您的問題，按下 Enter 開始搜尋..."
                 />
+
+                {/* 快速搜索按鈕 */}
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  {quickSearchButtons.map((button, index) => (
+                    <motion.button
+                      key={index}
+                      onClick={() => {
+                        setSearchQuery(button.text);
+                        searchWithAI(button.text);
+                      }}
+                      className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        visible: { 
+                          opacity: 1, 
+                          y: 0,
+                          transition: { delay: index * 0.1 }
+                        }
+                      }}
+                    >
+                      <span className="mr-2">{button.icon}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{button.text}</span>
+                    </motion.button>
+                  ))}
+                </div>
               </motion.div>
 
               <motion.div 
@@ -90,8 +146,19 @@ const FAQPage = () => {
                 variants={containerVariants}
               >
                 {isSearching ? (
-                  <div className="flex justify-center py-8">
+                  <div className="flex flex-col items-center py-8">
                     <LoadingState type="dots" text="AI 正在搜尋相關答案..." />
+                    {thinkingProcess && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-w-2xl w-full"
+                      >
+                        <pre className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300 font-mono">
+                          {thinkingProcess}
+                        </pre>
+                      </motion.div>
+                    )}
                   </div>
                 ) : (
                   <ResultList 

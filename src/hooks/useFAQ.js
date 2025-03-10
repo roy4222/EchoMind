@@ -14,6 +14,7 @@ export const useFAQ = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [expandedItems, setExpandedItems] = useState(new Set());
+  const [thinkingProcess, setThinkingProcess] = useState('');
 
   // 載入 FAQ 資料
   useEffect(() => {
@@ -58,9 +59,12 @@ export const useFAQ = () => {
     try {
       setIsSearching(true);
       setSearchQuery(query);
+      setThinkingProcess('');
       
       // 使用 AI 搜尋 FAQ
-      const aiResponse = await searchFAQWithAI(query);
+      const aiResponse = await searchFAQWithAI(query, (thinking) => {
+        setThinkingProcess(thinking);
+      });
       
       // 解析 AI 回應並更新搜尋結果
       const aiResult = {
@@ -79,6 +83,7 @@ export const useFAQ = () => {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
+      setThinkingProcess('');
     }
   };
 
@@ -91,6 +96,7 @@ export const useFAQ = () => {
     searchResults,
     expandedItems,
     toggleItem,
-    searchWithAI
+    searchWithAI,
+    thinkingProcess
   };
 }; 

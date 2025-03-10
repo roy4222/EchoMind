@@ -10,6 +10,9 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 // 聊天記錄集合名稱
 const CHATS_COLLECTION = 'chats';
 
+// FAQ 集合名稱
+const FAQ_COLLECTION = 'faqs';
+
 /**
  * 根據訊息內容選擇合適的模型
  * @param {string} content - 用戶訊息內容
@@ -26,18 +29,22 @@ const selectModel = (content) => {
   ];
 
   // 檢查訊息是否包含複雜度指標
-  const isComplex = complexityIndicators.some(indicator => 
-    content.toLowerCase().includes(indicator.toLowerCase())
-  );
+  const isComplex = complexityIndicators.some(indicator => {
+    const hasIndicator = content.toLowerCase().includes(indicator.toLowerCase());
+    if (hasIndicator) {
+      console.log(`檢測到複雜度指標: "${indicator}"`);
+    }
+    return hasIndicator;
+  });
 
   // 根據複雜度選擇模型
-  if (isComplex) {
-    // 對於複雜查詢使用更強大的模型
-    return 'deepseek-r1-distill-llama-70b';
-  } else {
-    // 對於一般對話使用較輕量的模型
-    return 'llama-3.1-8b-instant';
-  }
+  const selectedModel = isComplex ? 'deepseek-r1-distill-llama-70b' : 'llama-3.1-8b-instant';
+  
+  console.log(`問題: "${content}"`);
+  console.log(`複雜度: ${isComplex ? '高' : '低'}`);
+  console.log(`選擇模型: ${selectedModel}`);
+  
+  return selectedModel;
 };
 
 /**
@@ -212,6 +219,85 @@ export const getChatById = async (chatId) => {
     }
   } catch (error) {
     console.error('獲取聊天記錄詳情失敗:', error);
+    throw error;
+  }
+};
+
+/**
+ * 使用 AI 搜尋 FAQ
+ * @param {string} query - 搜尋關鍵字
+ * @returns {Promise} - 搜尋結果
+ */
+export const searchFAQWithAI = async (query) => {
+  try {
+    // 從 Firestore 獲取所有 FAQ
+    const querySnapshot = await getDocs(collection(db, FAQ_COLLECTION));
+    const faqs = [];
+    querySnapshot.forEach((doc) => {
+      faqs.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+
+    // 構建 AI 提示詞
+    const systemMessage = {
+      role: "system",
+      content: `你是一個專業的 FAQ 搜尋助手。
+請根據用戶的問題，從 FAQ 列表中找出最相關的答案。
+回答時請使用以下格式：
+
+# 問題：[相關問題]
+# 答案：[相關答案]
+# 標籤：[相關標籤]
+
+這是最相關的答案，因為...
+
+<think>
+1. 首先，我理解用戶的問題是...
+2. 接著，我在 FAQ 中搜尋...
+3. 我發現...
+4. 因此，我選擇...
+5. 最後，我確認...
+</think>
+
+如果沒有完全符合的答案，請給出最接近的建議，並說明為什麼這是最相關的答案。
+如果完全找不到相關答案，請建議用戶到聊天室與 AI 助手進行更深入的對話。
+
+FAQ 列表：
+${faqs.map(faq => `問題：${faq.question}\n答案：${faq.answer}\n標籤：${faq.tags.join(', ')}\n---`).join('\n')}`
+    };
+
+    const userMessage = {
+      role: "user",
+      content: query
+    };
+
+    // 發送到 GROQ API
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: selectModel(query),
+        messages: [systemMessage, userMessage],
+        temperature: 0.7,
+        max_tokens: 2048,
+        stream: false
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`AI 搜尋請求失敗: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('FAQ AI 搜尋失敗:', error);
     throw error;
   }
 }; 

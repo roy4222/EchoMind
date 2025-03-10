@@ -69,15 +69,6 @@ export const useChat = () => {
     initializeChat();
   }, [chatId, currentUser, navigate]);
 
-  // 清空訊息
-  const clearMessages = () => {
-    setMessages([{
-      id: Date.now(),
-      type: 'bot',
-      content: `${currentUser?.displayName || '訪客'}你好！我是 EchoMind AI 助手。我可以協助你解答問題、提供學習建議，或是陪你聊天。請問有什麼我可以幫你的嗎？`,
-          timestamp: new Date()
-    }]);
-  };
 
   // 處理訊息發送
   const handleSubmit = async (e) => {
@@ -174,6 +165,5 @@ export const useChat = () => {
     isChatReady,
     currentModel,
     setCurrentModel,
-    clearMessages
   };
 }; 

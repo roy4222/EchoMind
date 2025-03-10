@@ -27,7 +27,6 @@ const ChatPage = () => {
     isChatReady,
     currentModel,
     setCurrentModel,
-    clearMessages // 假設 useChat 提供了這個方法，如果沒有需要在 useChat 中添加
   } = useChat();
 
   // 從認證 context 獲取側邊欄狀態
@@ -41,16 +40,7 @@ const ChatPage = () => {
 
   // 處理新增聊天室
   const handleNewChat = () => {
-    if (messages.length > 0) {
-      const confirmNewChat = window.confirm('確定要開始新的對話嗎？目前的對話內容將會被清空。');
-      if (!confirmNewChat) return;
-    }
-    clearMessages();
-    setInputMessage('');
-    // 如果當前在特定聊天頁面，則導航回主聊天頁面
-    if (chatId) {
-      navigate('/chat');
-    }
+    navigate('/chat');
   };
 
   // 返回聊天列表

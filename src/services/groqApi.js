@@ -54,24 +54,24 @@ const selectModel = (content) => {
  */
 export const sendChatMessage = async (messages) => {
   try {
-    // 確保消息格式正確
+    // 確保消息格式正確，將內部訊息類型轉換為 GROQ API 所需的格式
     const formattedMessages = messages.map(msg => ({
-      role: msg.type === 'user' ? 'user' : 'assistant',
-      content: msg.content
+      role: msg.type === 'user' ? 'user' : 'assistant', // 將內部的 type 轉換為 API 需要的 role
+      content: msg.content // 保留訊息內容不變
     }));
 
-    // 檢查是否有消息
+    // 檢查是否有消息，如果沒有則拋出錯誤
     if (!formattedMessages.length) {
       throw new Error('沒有可發送的消息');
     }
 
-    // 獲取最後一條用戶訊息
+    // 獲取最後一條用戶訊息，用於選擇適合的模型
     const lastUserMessage = messages[messages.length - 1];
-    const selectedModel = selectModel(lastUserMessage.content);
+    const selectedModel = selectModel(lastUserMessage.content); // 根據訊息內容選擇合適的模型
 
-    // 添加 Baymax 風格的系統提示詞
+    // 添加 Baymax 風格的系統提示詞，定義 AI 助手的性格和回應風格
     const systemMessage = {
-      role: "system",
+      role: "system", // 系統訊息角色
       content: `我是一個像 Baymax 一樣的 AI 助手，擁有溫暖、貼心且可靠的性格。
 我的目標是關心使用者的需求，提供簡單易懂的回應，並使用溫和、友善的語氣進行對話。
 我會保持耐心，幫助使用者解決問題，並在適當的時候使用幽默或鼓勵的語句。
@@ -79,33 +79,37 @@ export const sendChatMessage = async (messages) => {
 請使用繁體中文回答所有問題，保持清晰、準確的專業回答。`
     };
 
+    // 發送 API 請求到 GROQ 服務
     const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
+      method: 'POST', // 使用 POST 方法
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`, // 添加 API 金鑰進行身份驗證
+        'Content-Type': 'application/json', // 設定內容類型為 JSON
       },
       body: JSON.stringify({
-        model: selectedModel,
-        messages: [systemMessage, ...formattedMessages],
-        temperature: 0.7,
-        top_p: 0.95,
-        max_tokens: selectedModel.includes('32b') ? 4096 : 2048,
-        stream: false
+        model: selectedModel, // 使用選定的模型
+        messages: [systemMessage, ...formattedMessages], // 將系統提示詞和用戶訊息合併
+        temperature: 0.7, // 控制回應的創造性，較高值產生更多樣化的回應
+        top_p: 0.95, // 控制詞彙選擇的多樣性
+        max_tokens: selectedModel.includes('32b') ? 4096 : 2048, // 根據模型大小設定最大回應長度
+        stream: false // 不使用串流回應模式
       }),
     });
 
+    // 檢查 API 回應是否成功
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('API 錯誤詳情:', errorData);
-      throw new Error(`API 請求失敗: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
+      const errorData = await response.json().catch(() => ({})); // 嘗試解析錯誤訊息
+      console.error('API 錯誤詳情:', errorData); // 記錄錯誤詳情
+      throw new Error(`API 請求失敗: ${response.status} - ${errorData.error?.message || '未知錯誤'}`); // 拋出格式化的錯誤
     }
 
+    // 解析 API 回應並返回 AI 生成的內容
     const data = await response.json();
-    return data.choices[0].message.content;
+    return data.choices[0].message.content; // 返回 AI 回應的文本內容
   } catch (error) {
+    // 捕獲並記錄任何錯誤
     console.error('GROQ API 錯誤:', error);
-    throw error;
+    throw error; // 將錯誤向上拋出，讓調用者處理
   }
 };
 

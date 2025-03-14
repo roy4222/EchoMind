@@ -27,6 +27,115 @@
 - Cloudflare Pages (前端)
 - Cloudflare Workers (API)
 
+## 🏗 系統架構
+
+### 整體架構圖
+
+```mermaid
+graph TD
+    Client[前端應用] --> |API 請求| Workers[Cloudflare Workers]
+    Workers --> |查詢/儲存| D1[(Cloudflare D1)]
+    Workers --> |暫存| KV[(Cloudflare KV)]
+    Workers --> |AI 對話| Groq[Groq API]
+    
+    subgraph Frontend[前端架構]
+        Router[React Router] --> Pages[頁面組件]
+        Pages --> Components[UI 組件]
+        Pages --> Hooks[自定義 Hooks]
+        Components --> Services[API 服務]
+        Hooks --> Services
+    end
+```
+
+### 元件關係圖
+
+```mermaid
+graph TD
+    App --> |路由管理| RouterProvider
+    RouterProvider --> |頁面載入| Pages
+    
+    subgraph Pages[頁面組件]
+        HomePage
+        ChatPage --> |使用| useChat
+        FAQPage --> |使用| useFAQ
+    end
+    
+    subgraph Components[核心組件]
+        ChatBox --> MessageList
+        ChatBox --> InputArea
+        ChatBox --> ModelSelector
+        SearchBar --> ResultList
+    end
+    
+    subgraph Contexts[全域狀態]
+        AuthContext --> |用戶狀態| Pages
+        ThemeContext --> |主題狀態| Components
+    end
+```
+
+### 資料流向圖
+
+```mermaid
+sequenceDiagram
+    participant User as 使用者
+    participant UI as 前端介面
+    participant Hook as Custom Hooks
+    participant API as API 服務
+    participant Worker as Cloudflare Worker
+    participant DB as 資料庫
+    
+    User->>UI: 操作介面
+    UI->>Hook: 觸發動作
+    Hook->>API: 發送請求
+    API->>Worker: API 調用
+    Worker->>DB: 資料操作
+    DB-->>Worker: 返回結果
+    Worker-->>API: 回應資料
+    API-->>Hook: 更新狀態
+    Hook-->>UI: 重新渲染
+    UI-->>User: 顯示結果
+```
+
+### 狀態管理
+
+```mermaid
+graph LR
+    subgraph Global[全域狀態]
+        AuthContext[認證狀態] --> |用戶資訊| Components
+        ThemeContext[主題狀態] --> |深色模式| UI
+    end
+    
+    subgraph Local[元件狀態]
+        ChatState[聊天狀態]
+        FAQState[FAQ狀態]
+        UIState[介面狀態]
+    end
+    
+    subgraph Hooks[狀態邏輯]
+        useChat --> ChatState
+        useFAQ --> FAQState
+    end
+```
+
+## 🔄 主要資料流程
+
+### 1. 使用者認證流程
+- 登入/註冊請求 → AuthContext → Firebase Auth → 更新全域狀態
+- 權限驗證 → RouteGuard → 路由重導向
+
+### 2. 聊天功能流程
+- 使用者輸入 → ChatBox → useChat Hook → Groq API → 更新訊息列表
+- 歷史記錄 → Cloudflare KV → ChatHistoryList → 顯示對話記錄
+
+### 3. FAQ 查詢流程
+- 關鍵字輸入 → SearchBar → useFAQ Hook → D1 資料庫 → 顯示結果
+- AI 輔助搜尋 → Groq API → 擴展查詢 → 更新搜尋結果
+
+### 4. 狀態管理策略
+- 全域狀態：使用 Context API 管理用戶資訊和主題設定
+- 元件狀態：使用 useState 管理局部 UI 狀態
+- 共用邏輯：透過自定義 Hooks 封裝狀態邏輯
+
 ## 📂 專案結構
 
 ```

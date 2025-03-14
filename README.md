@@ -20,7 +20,7 @@
 - **主要後端**：Cloudflare Workers
 - **資料庫**：
   - Cloudflare D1 (FAQ 資料)
-  - Cloudflare KV (對話紀錄)
+  - Firebase Realtime Database (對話紀錄)
 - **AI 模型**：Groq API (LLM 處理)
 
 ### 部署
@@ -35,7 +35,7 @@
 graph TD
     Client[前端應用] --> |API 請求| Workers[Cloudflare Workers]
     Workers --> |查詢/儲存| D1[(Cloudflare D1)]
-    Workers --> |暫存| KV[(Cloudflare KV)]
+    Workers --> |對話紀錄| Firebase[(Firebase DB)]
     Workers --> |AI 對話| Groq[Groq API]
     
     subgraph Frontend[前端架構]
@@ -125,7 +125,7 @@ graph LR
 
 ### 2. 聊天功能流程
 - 使用者輸入 → ChatBox → useChat Hook → Groq API → 更新訊息列表
-- 歷史記錄 → Cloudflare KV → ChatHistoryList → 顯示對話記錄
+- 歷史記錄 → Firebase Realtime Database → ChatHistoryList → 顯示對話記錄
 
 ### 3. FAQ 查詢流程
 - 關鍵字輸入 → SearchBar → useFAQ Hook → D1 資料庫 → 顯示結果

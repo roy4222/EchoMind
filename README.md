@@ -19,9 +19,10 @@
 ### 後端服務
 - **主要後端**：Cloudflare Workers
 - **資料庫**：
-  - Cloudflare D1 (FAQ 資料)
+  - Firebase Realtime Database(FAQ 資料)
   - Firebase Realtime Database (對話紀錄)
 - **AI 模型**：Groq API (LLM 處理)
+- **儲存空間**：Cloudflare R2 (用戶頭像)
 
 ### 部署
 - Cloudflare Pages (前端)
@@ -34,9 +35,10 @@
 ```mermaid
 graph TD
     Client[前端應用] --> |API 請求| Workers[Cloudflare Workers]
-    Workers --> |查詢/儲存| D1[(Cloudflare D1)]
+    Workers --> |查詢/儲存FAQ| Firebase[(Firebase DB)]
     Workers --> |對話紀錄| Firebase[(Firebase DB)]
     Workers --> |AI 對話| Groq[Groq API]
+    Workers --> |用戶頭像上傳| Cloudflare[(Cloudflare R2)]
     
     subgraph Frontend[前端架構]
         Router[React Router] --> Pages[頁面組件]
